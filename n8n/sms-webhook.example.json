@@ -1,0 +1,41 @@
+{
+  "name": "SMS Forwarder -> codigos de citas (ejemplo)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "CAMBIA-ESTE-PATH-POR-UNO-ALEATORIO",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "name": "Webhook SMS",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "credentials": { "httpHeaderAuth": { "id": "", "name": "Cabecera secreta del SMS Forwarder" } }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false },
+          "combinator": "or",
+          "conditions": [
+            { "leftValue": "={{ $json.body.from + ' ' + $json.body.text }}", "rightValue": "tinder", "operator": { "type": "string", "operation": "contains" } },
+            { "leftValue": "={{ $json.body.from + ' ' + $json.body.text }}", "rightValue": "hinge", "operator": { "type": "string", "operation": "contains" } },
+            { "leftValue": "={{ $json.body.from + ' ' + $json.body.text }}", "rightValue": "bumble", "operator": { "type": "string", "operation": "contains" } }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Solo apps de citas",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [240, 0]
+    }
+  ],
+  "connections": {
+    "Webhook SMS": { "main": [[{ "node": "Solo apps de citas", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "saveDataSuccessExecution": "all" }
+}
