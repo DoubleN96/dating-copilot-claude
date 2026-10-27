@@ -1,0 +1,23 @@
+# Nunca subir secretos, estado ni datos de matches
+config.env
+.env
+*.env
+!config.example.env
+.secrets/
+.claude/
+estado/
+**/estado/
+citas/PAUSA
+citas/rutas.md
+*.jsonl
+*.png
+*.jpg
+*.webp
+*.mp4
+*.srt
+*.vtt
+yt/
+videos/
+tools/pantalla.env
+__pycache__/
+*.pyc
