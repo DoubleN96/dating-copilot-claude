@@ -5,7 +5,8 @@ Esto es cómo se montó de verdad, con los tropiezos incluidos. Calcula una tard
 > ⚠️ **Antes de empezar.** Los términos de uso de Tinder, Hinge y Bumble **prohíben la automatización**
 > (bots, scripts, emuladores, acceso no oficial a su API). Pueden **suspender o banear tu cuenta** sin aviso.
 > Úsalo solo con **tu propia cuenta**, bajo **tu responsabilidad**, y con respeto hacia las personas con las que
-> hablas: el bot nunca debe negar que es una IA si se lo preguntan. Esto no es un servicio, es un experimento.
+> hablas: el bot nunca debe negar que es una IA si se lo preguntan. Lo mismo para WhatsApp (§9): automatizar
+> un WhatsApp personal va contra sus términos y puede costarte el número. Esto no es un servicio, es un experimento.
 
 ## Arquitectura
 
@@ -266,6 +267,77 @@ Luego pide a Claude: "resume estos subtítulos en técnicas aplicables al chat, 
 idea y separa lo que sea manipulación en una lista de descartes". Respeta los derechos de autor: guarda
 resúmenes con tus palabras, no transcripciones.
 
+## 9. WhatsApp con Evolution API (opcional)
+
+Tras el traspaso, el copiloto puede seguir la conversación **en tu WhatsApp** hasta cerrar día, hora y sitio.
+Lo hace con [Evolution API](https://github.com/EvolutionAPI/evolution-api) (self-hosted) y `citas/whatsapp.py`.
+
+> ⚠️ **Riesgo real.** Evolution usa WhatsApp Web (Baileys), no la API oficial de empresa. Automatizar un WhatsApp
+> **personal** va contra los [términos de WhatsApp](https://www.whatsapp.com/legal/terms-of-service) y puede
+> acabar con **tu número baneado**, temporal o definitivamente. Usa poco volumen, ritmo humano (los límites de
+> `envio.py` aplican también aquí), nunca mensajes masivos ni a gente que no te escribió, y asume el riesgo.
+
+**Diseño de privacidad**: `whatsapp.py` solo lee y escribe chats **dados de alta** (`whatsapp.py alta`, registro en
+`citas/estado/whatsapp_contactos.json`). Amigos, familia, grupos y trabajo no se leen ni se tocan. El hook
+`guarda-envios.py` bloquea llamadas a la API de Evolution que no pasen por `whatsapp.py`.
+
+### 9.1 Desplegar Evolution API (Docker)
+En el SERVIDOR (o donde quieras, con HTTPS delante: Caddy/Traefik/nginx). Evolution v2 necesita Postgres y Redis:
+```yaml
+# docker-compose.yml
+services:
+  evolution:
+    image: evoapicloud/evolution-api:latest   # en producción fija una versión v2.x concreta
+    restart: unless-stopped
+    ports: ["127.0.0.1:8080:8080"]            # solo localhost; expón por tu proxy HTTPS
+    environment:
+      SERVER_URL: https://evolution.example.com
+      AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY}   # openssl rand -hex 32
+      DATABASE_ENABLED: "true"
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: postgresql://evolution:${PG_PASS}@postgres:5432/evolution
+      DATABASE_SAVE_DATA_INSTANCE: "true"
+      DATABASE_SAVE_DATA_NEW_MESSAGE: "true"   # sin esto `leer` y `nuevos` no ven nada
+      DATABASE_SAVE_MESSAGE_UPDATE: "true"
+      DATABASE_SAVE_DATA_CONTACTS: "true"
+      DATABASE_SAVE_DATA_CHATS: "true"
+      CACHE_REDIS_ENABLED: "true"
+      CACHE_REDIS_URI: redis://redis:6379/6
+    volumes: [evolution_instances:/evolution/instances]
+    depends_on: [postgres, redis]
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment: {POSTGRES_USER: evolution, POSTGRES_PASSWORD: "${PG_PASS}", POSTGRES_DB: evolution}
+    volumes: [evolution_pg:/var/lib/postgresql/data]
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+volumes: {evolution_instances: {}, evolution_pg: {}}
+```
+`EVOLUTION_API_KEY` y `PG_PASS` en un `.env` junto al compose (chmod 600, fuera de git). `docker compose up -d`.
+
+### 9.2 Crear la instancia y vincular tu WhatsApp por QR
+```bash
+EVO=https://evolution.example.com; KEY=...   # la AUTHENTICATION_API_KEY
+curl -s -X POST $EVO/instance/create -H "apikey: $KEY" -H 'Content-Type: application/json' \
+  -d '{"instanceName":"mi-whatsapp","integration":"WHATSAPP-BAILEYS","qrcode":true}'
+curl -s $EVO/instance/connect/mi-whatsapp -H "apikey: $KEY"   # devuelve el QR (base64) y un pairing code
+```
+Abre el QR (o el *Manager* web en `$EVO/manager`) y en el móvil: WhatsApp → Dispositivos vinculados → Vincular
+un dispositivo. Comprueba con `curl -s $EVO/instance/connectionState/mi-whatsapp -H "apikey: $KEY"` → `open`.
+Haz estos `curl` tú a mano, no el bot (el hook se lo impide a propósito).
+
+### 9.3 Configurar el copiloto
+En `config.env`: `EVOLUTION_URL` (con `https://`), `EVOLUTION_INSTANCE` (`mi-whatsapp`), `EVOLUTION_API_KEY`, y si no
+estás en España `WA_DEFAULT_PREFIX` (prefijo de país sin `+`) y `WA_LOCAL_DIGITS` (dígitos de un número nacional).
+Prueba: `cd citas && python3 whatsapp.py nuevos 24` (lista chats nuevos de números no guardados, sin tocar nada).
+
+Cómo funciona en las rondas: la match que recibe tu número aparece en `nuevos` → el bot la da de alta → `chats`
+dice quién está `SIN CONTESTAR` → `leer` / `enviar` con el mismo estilo y ritmo aleatorio que en las apps, hasta
+agendar la cita. `leer` marca como `DUEÑO` lo que escribiste tú a mano: en cuanto escribes en un chat, el bot lo
+deja y no vuelve a contestar ahí hasta que se lo devuelvas por Telegram. Sin estas variables, WhatsApp lo llevas tú.
+
 ## Problemas típicos
 | Síntoma | Causa probable |
 |---|---|
@@ -274,4 +346,6 @@ resúmenes con tus palabras, no transcripciones.
 | El Android no tiene red | la IP del contenedor cambió: rehaz la regla ufw (§3.3) |
 | Hinge: «requires the Google Play Store» | imagen sin GApps: usa la de MindTheGapps |
 | Captcha sin fin / cuenta "en revisión" | IP de centro de datos: revisa que el proxy residencial funciona |
+| `whatsapp.py`: `HTTP 401` / `404` | `EVOLUTION_API_KEY` o `EVOLUTION_INSTANCE` mal; o la instancia se desvinculó (`connectionState` ≠ `open`): vuelve a escanear el QR |
+| `whatsapp.py leer` no muestra nada | Evolution no guarda mensajes: activa `DATABASE_SAVE_DATA_NEW_MESSAGE` y `DATABASE_SAVE_DATA_CHATS` |
 | `no encuentro la pestaña Chats` | popup o pantalla de carga: mira `ui.sh dump` o la pantalla remota |

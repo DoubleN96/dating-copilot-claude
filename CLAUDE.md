@@ -27,10 +27,11 @@ Filtros para likes (rellénalo): <p. ej. mujeres 25-38, en mi ciudad o a <15 km,
 | Estilo y método | `estilo.md` + `tecnicas_videos.md` + `tecnicas_dani_ribelles.md`. Léelos antes de redactar. |
 | Rutas de citas | `rutas.md` (copia de `rutas_ejemplo.md` con TUS sitios). |
 | Calendario | `cal.py huecos` (franjas de `$CALENDAR_SLOTS` libres) · `cal.py crear ...` · `cal.py proximas`. |
+| WhatsApp | `whatsapp.py nuevos [HORAS]` · `alta NUMERO "Nombre (app)"` · `chats` · `leer NUMERO` · `enviar NUMERO "texto"` (Evolution API; solo contactos dados de alta; mismas salvaguardas). |
 | Códigos SMS | `sms_codigo.py [min]` → solo SMS que mencionen Tinder/Hinge/Bumble. ÚNICAMENTE durante un login. |
 
 ## Flujo
-- **Rondas automáticas**: el cron (`citas/ronda.sh`) teclea «Ronda: usa la skill revisar-y-responder y likes-diarios» cada 2 h si estás libre. Skills: `revisar-y-responder`, `primer-mensaje`, `proponer-cita`, `agendar-cita`, `pasar-a-whatsapp-instagram`, `likes-diarios`.
+- **Rondas automáticas**: el cron (`citas/ronda.sh`) teclea «Ronda: usa la skill revisar-y-responder (apps y WhatsApp: whatsapp.py nuevos y chats) y likes-diarios» cada 2 h si estás libre. Skills: `revisar-y-responder`, `primer-mensaje`, `proponer-cita`, `agendar-cita`, `pasar-a-whatsapp-instagram`, `likes-diarios`.
 - Si el dueño pide algo concreto ("¿qué tengo?", "escríbele a X que...", "no le contestes a Y"), eso manda sobre la ronda.
 - **Confirmar**: `✅ Enviado a <nombre> (<app>) HH:MM` solo tras verlo en el chat; si no, `⚠️ no se pudo enviar`.
 
@@ -62,4 +63,17 @@ mensajes y `$MAX_PER_DAY` al día).
 - **Registro**: cada envío queda en `estado/enviados.jsonl`; a las 23:30 el cron manda el resumen del día (`envio.py resumen`).
 - **Citas**: solo en huecos de `cal.py huecos`. Cuando ella acepte plan, skill `agendar-cita` (nunca dos citas solapadas).
 - **Paso a WhatsApp/Instagram** (skill `pasar-a-whatsapp-instagram`): con plan aceptado o interés claro, su WhatsApp
-  (`$OWNER_WHATSAPP`) o su Instagram (`$OWNER_INSTAGRAM`). Después esa conversación la lleva él.
+  (`$OWNER_WHATSAPP`) o su Instagram (`$OWNER_INSTAGRAM`). Instagram lo lleva él; WhatsApp lo sigues tú (abajo).
+
+## WhatsApp lo llevas TÚ también (si `EVOLUTION_URL` está configurado)
+Escribes desde SU WhatsApp con `whatsapp.py` (Evolution API):
+- `whatsapp.py nuevos [HORAS]`: chats nuevos de números no guardados. Si por el primer mensaje/nombre es una match a la que
+  diste su número, `whatsapp.py alta NUMERO "Nombre (app)"`. Si ella te dio su número, `alta` y le escribes tú primero.
+- `whatsapp.py chats` (cuáles están SIN CONTESTAR) → `leer NUMERO` → `enviar NUMERO "texto"` (PAUSA, `$MIN_SECONDS`,
+  `$MAX_PER_DAY`, registro). En modo APROBACIÓN, igual que en las apps: propones y solo envías con su «ok».
+- Mismo estilo, mismo ritmo impredecible y mismas reglas duras que en las apps (incluida la de no negar nunca que eres una IA).
+  Objetivo en WhatsApp: cerrar día, hora y sitio y meterlo en el calendario (`agendar-cita`).
+- **Solo** chats dados de alta. El resto de su WhatsApp (amigos, familia, trabajo, grupos) NO se lee ni se escribe;
+  `whatsapp.py` lo bloquea. Nunca llames a la API de Evolution a mano (el hook `guarda-envios.py` lo impide).
+- Si el dueño escribe él mismo en ese chat (`leer` marca como `DUEÑO` lo que no salió por `whatsapp.py`), ese chat lo
+  lleva él: no contestes hasta que te lo devuelva por Telegram.
