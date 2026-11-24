@@ -21,3 +21,8 @@ videos/
 tools/pantalla.env
 __pycache__/
 *.pyc
+
+# panel autoalojado
+*.db
+*.db-*
+!panel/static/*.png
