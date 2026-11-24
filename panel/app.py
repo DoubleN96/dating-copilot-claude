@@ -8,6 +8,13 @@ from zoneinfo import ZoneInfo
 from cryptography.fernet import Fernet
 import ia
 
+# config.env junto a app.py (KEY=valor, sin comillas obligatorias); las variables de entorno reales mandan
+_CFG = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.env")
+for _l in (open(_CFG, encoding="utf-8").read().splitlines() if os.path.exists(_CFG) else ()):
+    _k, _s, _v = _l.strip().partition("=")
+    if _s and not _k.startswith("#"):
+        _v = _v.strip()
+        os.environ.setdefault(_k.strip(), _v[1:-1] if len(_v) > 1 and _v[0] == _v[-1] and _v[0] in "\"'" else _v)
 ENV = os.environ.get
 BASE = ENV("BASE_URL", "http://localhost:8990").rstrip("/")
 DB = ENV("DB_PATH", "/data/celestia.db")
@@ -561,6 +568,8 @@ STRIPE_KEY, STRIPE_WHSEC, STRIPE_PRICE, STRIPE_PORTAL = (ENV(k, "") for k in ("S
 ESTADO_STRIPE = {"trialing": "prueba", "active": "activo", "past_due": "impago", "unpaid": "impago", "incomplete": "impago", "paused": "impago",
                  "canceled": "cancelado", "incomplete_expired": "cancelado"}
 VIVAS = ("trialing", "active", "past_due")  # se gestionan en el portal; unpaid/paused/incomplete se cancelan y se empieza limpio
+PERMITIDOS = {x.strip().lower() for x in ENV("ALLOWED_EMAILS", "").split(",") if x.strip()}  # autoalojado: solo estas cuentas de Google
+permitido = lambda email: not PERMITIDOS or (email or "").lower() in PERMITIDOS
 de_pago = lambda u: bool(u) and (not STRIPE_KEY or u["plan"] == "fundador" or u["estado"] in ("prueba", "activo"))  # sin Stripe (autoalojado) todo abierto
 
 
@@ -1182,6 +1191,8 @@ class H(BaseHTTPRequestHandler):
                 return self.out(403, pag("<section><h2>Usa la misma cuenta de Google con la que entraste.</h2><a class='btn' href='/'>Volver</a></section>"))
             q("UPDATE users SET cal_rt=? WHERE uid=?", fernet().encrypt(tok["refresh_token"].encode()), uid)
             return self.ir("/")
+        if not permitido(c.get("email")):
+            return self.out(403, pag("<section><h2>Esta cuenta de Google no tiene acceso a este panel.</h2><a class='btn' href='/'>Volver</a></section>"))
         with db() as d:
             d.execute("INSERT INTO users(uid,email,nombre,inst,hook,creado) VALUES(?,?,?,?,?,?) ON CONFLICT(uid) DO UPDATE SET email=excluded.email",
                       (c["sub"], c["email"], c.get("name") or c["email"], inst_de(c["sub"]), os.urandom(16).hex(), datetime.now(TZ).isoformat()))
@@ -1432,7 +1443,25 @@ def init():
     migrar()
 
 
+def fallos_config():
+    """Lo que impide arrancar con seguridad: el código es público, así que nada de claves por defecto ni panel abierto a todo internet."""
+    f = []
+    if len(SKEY) < 32 or SKEY == b"dev-only-key":
+        f.append("SESSION_KEY: pon 32+ caracteres al azar (python3 -c \"import secrets;print(secrets.token_urlsafe(32))\")")
+    try:
+        fernet()
+    except Exception:
+        f.append("FERNET_KEY: falta o no es válida (python3 -c \"import base64,os;print(base64.urlsafe_b64encode(os.urandom(32)).decode())\")")
+    if not STRIPE_KEY and not PERMITIDOS:
+        f.append("ALLOWED_EMAILS: sin Stripe, di qué cuentas de Google pueden entrar (tu email, separados por comas)")
+    if BRIDGE_SECRET and len(BRIDGE_SECRET) < 32:
+        f.append("BRIDGE_SECRET: vacío o 32+ caracteres al azar")
+    return f
+
+
 if __name__ == "__main__":
+    if fallos_config():
+        raise SystemExit("No arranco, revisa config.env:\n- " + "\n- ".join(fallos_config()))
     init()
     threading.Thread(target=purga, daemon=True).start()
     ThreadingHTTPServer(("0.0.0.0", int(ENV("PORT", "8990"))), H).serve_forever()

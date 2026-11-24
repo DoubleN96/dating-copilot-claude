@@ -10,8 +10,9 @@ if [ "$1" = resumen ]; then [ "$H" = 23 ] && $PY $C/envio.py resumen; exit 0; fi
 [ -e $C/PAUSA ] && { log "en PAUSA, sin ronda"; exit 0; }
 exec 9>/tmp/copiloto-ronda.lock; flock -n 9 || { log "otra ronda.sh en marcha"; exit 0; }
 P=$(tmux capture-pane -p -t $S 2>/dev/null) || { log "no hay tmux $S"; exit 0; }
-echo "$P" | grep -q "esc to interrupt" && { log "ocupada (ronda u otra tarea en curso)"; exit 0; }
-echo "$P" | grep -E '^❯ .+' | grep -vq '^❯ Try "' && { log "hay texto a medio escribir en su prompt"; exit 0; }
-tmux send-keys -t $S -l "Ronda: usa la skill revisar-y-responder (apps y WhatsApp: whatsapp.py nuevos y chats) y likes-diarios"; sleep 1
+echo "$P" | grep -qi "esc to interrupt" && { log "ocupada (ronda u otra tarea en curso)"; exit 0; }
+# texto a medio escribir tras el prompt (❯ Claude Code, › Codex); el texto de ejemplo del prompt va atenuado (ESC[2m) y no cuenta
+tmux capture-pane -p -e -t $S | grep -P '^(\e\[[\d;]*m)*[❯›](\e\[[\d;]*m)* (?!(\e\[[\d;]*m)*\e\[([\d;]*;)?2m)(\e\[[\d;]*m)*[^\s\e]' | grep -vq 'Try "' && { log "hay texto a medio escribir en su prompt"; exit 0; }
+tmux send-keys -t $S -l "Ronda: usa la skill revisar-y-responder (skills/revisar-y-responder/SKILL.md; apps y WhatsApp: whatsapp.py nuevos y chats) y likes-diarios (skills/likes-diarios/SKILL.md)"; sleep 1
 tmux send-keys -t $S Enter
 log "ronda lanzada"

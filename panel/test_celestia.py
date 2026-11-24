@@ -327,3 +327,8 @@ print("OK: todos los asserts")
 app.STRIPE_KEY = ""
 assert app.de_pago({"plan": "", "estado": ""})
 print("OK: autoalojado sin Stripe")
+# arranque seguro: sin claves débiles ni panel abierto a cualquiera
+assert any("SESSION_KEY" in f for f in app.fallos_config()) and any("ALLOWED_EMAILS" in f for f in app.fallos_config())
+app.SKEY, app.PERMITIDOS, app.BRIDGE_SECRET = b"x" * 32, {"yo@x.com"}, "b" * 32
+assert app.fallos_config() == [] and app.permitido("Yo@X.com") and not app.permitido("otro@x.com")
+print("OK: arranque seguro y lista de cuentas")

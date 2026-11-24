@@ -30,8 +30,9 @@ tmux new -s copiloto ./launch.sh          # Claude Code oficial: inicia sesión 
 tmux new -s copiloto ./launch-codex.sh    # Codex CLI oficial: «Sign in with ChatGPT» (lee AGENTS.md)
 ```
 
-Con Claude Code tienes además el canal de Telegram, los hooks de seguridad y las skills; con Codex le hablas en la terminal
-y `citas/ronda.sh` le lanza las rondas igual. ¿Prefieres una web? El **panel** (`panel/`) es el núcleo de CelestIA para
+Con Claude Code tienes además el canal de Telegram, los hooks de seguridad y el modo autónomo; con Codex le hablas en la terminal,
+`citas/ronda.sh` le lanza las rondas igual y **siempre te propone y espera tu «ok»** antes de enviar (sin hooks no hay modo
+autónomo; ver `AGENTS.md`). El inicio de sesión de Codex queda en `.codex/`, que está en `.gitignore`: no lo subas. ¿Prefieres una web? El **panel** (`panel/`) es el núcleo de CelestIA para
 autoalojar: entrar con Google, WhatsApp, Instagram, Calendar y bandeja de propuestas ([panel/README.md](panel/README.md)).
 
 ## Qué hace
@@ -97,7 +98,8 @@ instructed to never deny being an AI.
 
 - **Free, self-hosted (this repo):** runs on your own computer/server with your own AI account — the **official Claude Code**
   binary signed in with your own subscription (`./launch.sh`), or the **official Codex CLI** with "**Sign in with ChatGPT**"
-  (`./launch-codex.sh`, reads `AGENTS.md`). We never see or store your credentials. Optional self-hosted web panel in `panel/`.
+  (`./launch-codex.sh`, reads `AGENTS.md`; approval-only, since Codex has no safety hooks; its login stays in the git-ignored
+  `.codex/`). We never see or store your credentials. Optional self-hosted web panel in `panel/`.
 - **CelestIA Cloud:** €29/month + VAT, 3-day free trial, cloud Android and residential IP included —
   [app.celestia.meetqiu.com](https://app.celestia.meetqiu.com).
 
