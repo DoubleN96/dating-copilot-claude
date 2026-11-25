@@ -5,7 +5,7 @@
 *[English below](#english)* · Versión gestionada, sin instalar nada: **[celestia.meetqiu.com](https://celestia.meetqiu.com)** (3 días gratis)
 
 <p align="center"><img src="docs/media/demo.gif" width="300" alt="Demo: conectar Google y WhatsApp, apps en la nube y valorar la cita"><br>
-<sub>Así se ve en la versión gestionada (CelestIA Nube). Este repo es el mismo motor para que lo montes tú.</sub></p>
+<sub>Así se ve en la versión gestionada (CelestIA Nube). Este repo es el núcleo abierto de ese motor, para que lo montes tú.</sub></p>
 
 **Tu copiloto de citas con IA.** Lee tus matches de Tinder, Hinge y Bumble (y WhatsApp/Instagram), contesta con *tu* estilo,
 propone planes en *tus* sitios y solo en *tus* huecos libres, los apunta en tu Google Calendar y te lo cuenta todo.
@@ -24,7 +24,7 @@ Tú decides si propone y espera tu «ok», o si va solo con límites y botón de
 | Dónde corre | En tu ordenador o servidor (Linux/macOS/WSL) con tu Android en Docker o tu móvil | En nuestros servidores |
 | La IA | **Tu propia cuenta**: el **Claude Code oficial** con tu suscripción (`claude` y su propio inicio de sesión) **o** el **Codex CLI oficial** con «**Iniciar sesión con ChatGPT**». Nunca vemos ni guardamos tus credenciales | Incluida |
 | Android e IP | Los montas tú (redroid + tu IP de casa) | Android en la nube propio e IP residencial propia, incluidos |
-| Precio | 0 € | **29,99 €/mes + IVA** (36,29 € con IVA en España), 3 días gratis, cancelas cuando quieras: [celestia.meetqiu.com](https://celestia.meetqiu.com) |
+| Precio | 0 € | **36,29 €/mes con IVA en España** (fuera de España, 29,99 €/mes sin IVA añadido), 3 días gratis, cancelas cuando quieras: [celestia.meetqiu.com](https://celestia.meetqiu.com) |
 
 ### Modo gratis en 4 pasos
 
@@ -109,7 +109,7 @@ instructed to never deny being an AI.
   binary signed in with your own subscription (`./launch.sh`), or the **official Codex CLI** with "**Sign in with ChatGPT**"
   (`./launch-codex.sh`, reads `AGENTS.md`; approval-only, since Codex has no safety hooks; its login stays in the git-ignored
   `.codex/`). We never see or store your credentials. Optional self-hosted web panel in `panel/`.
-- **CelestIA Cloud (managed):** €29.99/month + VAT (€36.29 incl. Spanish VAT), 3-day free trial, cloud Android and
+- **CelestIA Cloud (managed):** €36.29/month incl. VAT in Spain (€29.99/month elsewhere, no VAT added), 3-day free trial, cloud Android and
   residential IP included — [celestia.meetqiu.com](https://celestia.meetqiu.com).
 
 **Legal notice:** Tinder, Hinge, Bumble, Instagram and WhatsApp Terms of Service forbid or restrict automation; your
