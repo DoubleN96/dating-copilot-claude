@@ -1,5 +1,12 @@
 # dating-copilot-claude · núcleo abierto de CelestIA
 
+[![MIT](https://img.shields.io/badge/licencia-MIT-blue)](LICENSE) ![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-3776AB) ![Claude Code](https://img.shields.io/badge/Claude%20Code-oficial-D97757) ![Codex CLI](https://img.shields.io/badge/Codex%20CLI-Sign%20in%20with%20ChatGPT-10a37f)
+
+*[English below](#english)* · Versión gestionada, sin instalar nada: **[celestia.meetqiu.com](https://celestia.meetqiu.com)** (3 días gratis)
+
+<p align="center"><img src="docs/media/demo.gif" width="300" alt="Demo: conectar Google y WhatsApp, apps en la nube y valorar la cita"><br>
+<sub>Así se ve en la versión gestionada (CelestIA Nube). Este repo es el mismo motor para que lo montes tú.</sub></p>
+
 **Tu copiloto de citas con IA.** Lee tus matches de Tinder, Hinge y Bumble (y WhatsApp/Instagram), contesta con *tu* estilo,
 propone planes en *tus* sitios y solo en *tus* huecos libres, los apunta en tu Google Calendar y te lo cuenta todo.
 Tú decides si propone y espera tu «ok», o si va solo con límites y botón de pausa.
@@ -17,7 +24,7 @@ Tú decides si propone y espera tu «ok», o si va solo con límites y botón de
 | Dónde corre | En tu ordenador o servidor (Linux/macOS/WSL) con tu Android en Docker o tu móvil | En nuestros servidores |
 | La IA | **Tu propia cuenta**: el **Claude Code oficial** con tu suscripción (`claude` y su propio inicio de sesión) **o** el **Codex CLI oficial** con «**Iniciar sesión con ChatGPT**». Nunca vemos ni guardamos tus credenciales | Incluida |
 | Android e IP | Los montas tú (redroid + tu IP de casa) | Android en la nube propio e IP residencial propia, incluidos |
-| Precio | 0 € | **29 €/mes + IVA**, 3 días gratis, cancelas cuando quieras: [app.celestia.meetqiu.com](https://app.celestia.meetqiu.com) |
+| Precio | 0 € | **29,99 €/mes + IVA** (36,29 € con IVA en España), 3 días gratis, cancelas cuando quieras: [celestia.meetqiu.com](https://celestia.meetqiu.com) |
 
 ### Modo gratis en 4 pasos
 
@@ -72,6 +79,8 @@ Todo lo personal va en `config.env` (a partir de `config.example.env`) y en `cit
 
 Guía completa, con lo que falla y por qué: **[docs/INSTALL.md](docs/INSTALL.md)**.
 
+¿Quieres colaborar? Lee [CONTRIBUTING.md](CONTRIBUTING.md). Licencia: [MIT](LICENSE).
+
 Requisitos: Claude Code o Codex CLI (oficiales, con tu propia cuenta), un bot de Telegram, Linux con Docker (≥3 GB de RAM libres para el Android), una máquina
 en casa para la IP residencial y Python 3.9+ (`pip install websockets`).
 
@@ -100,12 +109,23 @@ instructed to never deny being an AI.
   binary signed in with your own subscription (`./launch.sh`), or the **official Codex CLI** with "**Sign in with ChatGPT**"
   (`./launch-codex.sh`, reads `AGENTS.md`; approval-only, since Codex has no safety hooks; its login stays in the git-ignored
   `.codex/`). We never see or store your credentials. Optional self-hosted web panel in `panel/`.
-- **CelestIA Cloud:** €29/month + VAT, 3-day free trial, cloud Android and residential IP included —
-  [app.celestia.meetqiu.com](https://app.celestia.meetqiu.com).
+- **CelestIA Cloud (managed):** €29.99/month + VAT (€36.29 incl. Spanish VAT), 3-day free trial, cloud Android and
+  residential IP included — [celestia.meetqiu.com](https://celestia.meetqiu.com).
 
 **Legal notice:** Tinder, Hinge, Bumble, Instagram and WhatsApp Terms of Service forbid or restrict automation; your
 account or number may be suspended or banned. Use it only with your own accounts, at your own risk, and in compliance with
 your local law (GDPR in the EU: chats contain other people's data). Provided "as is", without warranty. Treat the people on
 the other side with respect.
 
-Setup guide (Spanish): [docs/INSTALL.md](docs/INSTALL.md). License: MIT.
+**Quick start**
+
+```bash
+git clone https://github.com/DoubleN96/dating-copilot-claude.git ~/copilot && cd ~/copilot
+cp config.example.env config.env && cp citas/rutas_ejemplo.md citas/rutas.md   # fill in both
+tmux new -s copilot ./launch.sh          # official Claude Code, your own login
+# or: tmux new -s copilot ./launch-codex.sh   # official Codex CLI, "Sign in with ChatGPT"
+```
+
+Requirements: Claude Code or Codex CLI (your own account), a Telegram bot, Linux with Docker (≥3 GB free RAM for the Android
+container), a home machine for the residential IP, Python 3.9+. Full setup guide (Spanish): [docs/INSTALL.md](docs/INSTALL.md).
+Self-hosted web panel: [panel/README.md](panel/README.md). Contributing: [CONTRIBUTING.md](CONTRIBUTING.md). License: [MIT](LICENSE).
